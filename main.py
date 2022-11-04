@@ -1,7 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import time
-import os
+import os.path
+import glob
 
 from csvReader import read_csv
 
@@ -66,7 +67,6 @@ def crawl():
 
     time.sleep(3)
 
-
     try:
         for i in range(currentRow, len(search_list)):
 
@@ -92,7 +92,10 @@ def crawl():
             time.sleep(0.1)
             archive_date_sort.click()
 
-            # time.sleep(1)
+            study_type = driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div[2]/div["
+                                                       "1]/div[2]/div[2]/div[2]/div/div[2]/div[2]/div/div[1]/div["
+                                                       "2]/div/div[1]/div/div[11]/div").text
+
             # select row and click
             driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div[2]/div[1]/div[2]/div["
                                           "2]/div[2]/div/div[2]/div[2]/div/div[1]/div[2]/div/div/div/div[1]/div").click()
@@ -118,12 +121,22 @@ def crawl():
 
             time.sleep(1)
 
-            # new_name = "./downloads/Download" + str(num) + ".pdf"
-            # os.rename('./downloads/doc.pdf', new_name)
+
+            files = glob.iglob('.\\downloads\\*')
+            max_file = max(files, key=os.path.getctime)
+            original_file_name = max_file
+            max_file_split = max_file.split('\\')
+            filename = max_file_split[len(max_file_split) - 1].split('.')
+            extension = filename[len(filename) - 1]
+            # print(max_file_split)
+            # print(filename)
+            # print(extension)
+            new_file_name = "Type " + study_type + " " + str(currentRow) + "." + extension
+            # print(new_file_name)
+            os.rename(original_file_name, '.\\downloads\\' + new_file_name)
 
             # hit back button
             driver.find_element(By.XPATH, '//*[@id="btnBackToSearchResult"]').click()
-
             currentRow += 1
 
             time.sleep(0.5)
