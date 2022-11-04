@@ -9,7 +9,19 @@ url = 'https://scerisecm.boston.gov/ScerIS/CmPublic/#/SearchCriteria?f=56'
 csv_path = 'search results.csv'
 download_directory = 'C:\\Users\\dali7\\PycharmProjects\\Traffic-data-scraper\\downloads'
 
-if __name__ == '__main__':
+currentRow = 0
+search_list = []
+
+
+def create_list():
+    global search_list
+    search_list = read_csv(csv_path, 0)
+
+
+def crawl():
+    global search_list
+    global currentRow
+    starting_row = 1
 
     # Change download directory to a local folder
     chrome_options = webdriver.ChromeOptions()
@@ -54,70 +66,77 @@ if __name__ == '__main__':
 
     time.sleep(3)
 
-    num = 0
 
-    original_file_list = read_csv(csv_path)
-    for string in original_file_list:
-        # original_file field
-        original_file_field = driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div["
-                                                            "2]/div[ "
-                                                            "1]/div[2]/div[2]/div[2]/div/div[2]/div[2]/div/div[1]/div["
-                                                            "1]/div/div/div/div/div/div[7]/div[2]/div[2]/div/div/input")
-        original_file_field.clear()
-        original_file_field.send_keys(string)
+    try:
+        for i in range(currentRow, len(search_list)):
 
-        archive_date_sort = driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div[2]/div["
-                                                         "1]/div[2]/div[2]/div[2]/div/div[2]/div[2]/div/div[1]/div["
-                                                         "1]/div/div/div/div/div/div[1]/div[1]/div[1]")
-        archive_date_sort.click()
-        time.sleep(0.1)
-        archive_date_sort.click()
+            print("Progress: ", str(currentRow + 1), "/", str(len(search_list)))
 
-        # time.sleep(1)
-        # select row and click
-        driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div[2]/div[1]/div[2]/div["
-                                      "2]/div[2]/div/div[2]/div[2]/div/div[1]/div[2]/div/div/div/div[1]/div").click()
+            string = search_list[i]
+            # original_file field
+            original_file_field = driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div["
+                                                                "2]/div[ "
+                                                                "1]/div[2]/div[2]/div[2]/div/div[2]/div[2]/div/div["
+                                                                "1]/div[ "
+                                                                "1]/div/div/div/div/div/div[7]/div[2]/div["
+                                                                "2]/div/div/input")
+            original_file_field.clear()
+            original_file_field.send_keys(string)
 
-        time.sleep(0.2)
+            # click archive_date_sort twice
+            archive_date_sort = driver.find_element(By.XPATH,
+                                                    "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div[2]/div["
+                                                    "1]/div[2]/div[2]/div[2]/div/div[2]/div[2]/div/div[1]/div["
+                                                    "1]/div/div/div/div/div/div[1]/div[1]/div[1]")
+            archive_date_sort.click()
+            time.sleep(0.1)
+            archive_date_sort.click()
 
-        # Select and click view document button
-        driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div[2]/div[1]/div[2]/div["
-                                      "2]/div[2]/div/div[1]/nav/button[5]").click()
+            # time.sleep(1)
+            # select row and click
+            driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div[2]/div[1]/div[2]/div["
+                                          "2]/div[2]/div/div[2]/div[2]/div/div[1]/div[2]/div/div/div/div[1]/div").click()
 
-        time.sleep(5)
-        # select and click download
-        driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div[3]/div[1]/div[2]/div/div["
-                                      "4]/div[2]/div[1]/div[2]/div[1]/button[3]").click()
-        time.sleep(0.5)
-        # select and hit download left side
-        driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div[3]/div[1]/div[2]/div/div["
-                                      "4]/div[5]/div[7]/div[2]/button").click()
-        time.sleep(0.5)
-        # select and hit save
-        driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div[3]/div[1]/div[2]/div/div["
-                                     "4]/div[23]/div/div/div[2]/button[2]").click()
+            time.sleep(0.2)
 
-        time.sleep(2)
-        new_name = "./downloads/Download" + str(num) + ".pdf"
-        os.rename('./downloads/doc.pdf', new_name)
+            # Select and click view document button
+            driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div[2]/div[1]/div[2]/div["
+                                          "2]/div[2]/div/div[1]/nav/button[5]").click()
 
-        # hit back button
-        driver.find_element(By.XPATH, '//*[@id="btnBackToSearchResult"]').click()
+            time.sleep(3)
+            # select and click download
+            driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div[3]/div[1]/div[2]/div/div["
+                                          "4]/div[2]/div[1]/div[2]/div[1]/button[3]").click()
+            time.sleep(0.5)
+            # select and hit download left side
+            driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div[3]/div[1]/div[2]/div/div["
+                                          "4]/div[5]/div[7]/div[2]/button").click()
+            time.sleep(0.5)
+            # select and hit save
+            driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div[3]/div[1]/div[2]/div/div["
+                                          "4]/div[23]/div/div/div[2]/button[2]").click()
 
+            time.sleep(1)
 
-        num += 1
+            # new_name = "./downloads/Download" + str(num) + ".pdf"
+            # os.rename('./downloads/doc.pdf', new_name)
 
-        time.sleep(0.5)
+            # hit back button
+            driver.find_element(By.XPATH, '//*[@id="btnBackToSearchResult"]').click()
 
+            currentRow += 1
 
-
-
-    # /html/body/div[1]/div/div/div[2]/div[3]/div/div/div[2]/div[1]/div[2]/div[2]/div[2]/div/div[1]/nav/button[6]
-
-    # collection_date_field.
-
-    time.sleep(10)
+            time.sleep(0.5)
+    except:
+        driver.close()
+        print("restarting... (nothing to worry about)")
+        time.sleep(10)
+        crawl()
+        return
 
     driver.close()
 
-    print("done")
+
+if __name__ == '__main__':
+    create_list()
+    crawl()
