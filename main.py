@@ -14,9 +14,9 @@ currentRow = 0
 search_list = []
 
 
-def create_list():
+def create_list(starting_point):
     global search_list
-    search_list = read_csv(csv_path, 0)
+    search_list = read_csv(csv_path, starting_point)
 
 
 def crawl():
@@ -69,8 +69,7 @@ def crawl():
 
     try:
         for i in range(currentRow, len(search_list)):
-
-            print("Progress: ", str(currentRow + 1), "/", str(len(search_list)))
+            print("Progress: working on", str(currentRow + 1), "/", str(len(search_list)))
 
             string = search_list[i]
             # original_file field
@@ -121,7 +120,6 @@ def crawl():
 
             time.sleep(1)
 
-
             files = glob.iglob('.\\downloads\\*')
             max_file = max(files, key=os.path.getctime)
             original_file_name = max_file
@@ -151,5 +149,13 @@ def crawl():
 
 
 if __name__ == '__main__':
-    create_list()
+    change_starting_point = input("Change starting point of the csv[y/n]? ")
+
+    starting_point = 0
+
+    if change_starting_point.lower() == 'y':
+        start = int(input("What line of the csv do you want to start at (use 0 indexing)? "))
+        starting_point = start
+
+    create_list(starting_point)
     crawl()

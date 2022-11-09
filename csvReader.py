@@ -1,9 +1,10 @@
 import csv
 
+
 # Reads the search results csv and returns a list of file names
-def read_csv(filename, startingrow):
+def read_csv(filename, startingRow):
     result = []
-    start = startingrow
+    start = startingRow
 
     with open(filename) as csv_file:
         reader = csv.reader(csv_file, delimiter=',')
@@ -15,4 +16,6 @@ def read_csv(filename, startingrow):
                 result.append(original_file)
             line_number += 1
 
+    print(result)
+    input()
     return result
