@@ -3,30 +3,42 @@ from selenium.webdriver.common.by import By
 import time
 import os.path
 import glob
+from pathlib import Path
+import natsort
+import shutil
 
 from csvReader import read_csv
 
+# TODO:
+
 url = 'https://scerisecm.boston.gov/ScerIS/CmPublic/#/SearchCriteria?f=56'
 csv_path = 'search results.csv'
-download_directory = 'C:\\Users\\dali7\\PycharmProjects\\Traffic-data-scraper\\downloads'
+project_path = 'C:\\Users\\dali7\\PycharmProjects\\Traffic-data-scraper'
+temp_directory_path = project_path + '\\temp'
+download_directory_path = project_path + '\\downloads'
+
+temp_directory_path_relative = './temp'
+download_directory_path_relative = './downloads'
+
+file_id = 1
 
 currentRow = 0
 search_list = []
 
 
-def create_list(starting_point):
+def create_list(starting):
     global search_list
-    search_list = read_csv(csv_path, starting_point)
+    search_list = read_csv(csv_path, starting)
 
 
 def crawl():
     global search_list
     global currentRow
-    starting_row = 1
+    global file_id
 
     # Change download directory to a local folder
     chrome_options = webdriver.ChromeOptions()
-    prefs = {'download.default_directory': download_directory}
+    prefs = {'download.default_directory': temp_directory_path}
     chrome_options.add_experimental_option('prefs', prefs)
 
     driver = webdriver.Chrome('./driver/chromedriver.exe', options=chrome_options)
@@ -105,7 +117,7 @@ def crawl():
             driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div[2]/div[1]/div[2]/div["
                                           "2]/div[2]/div/div[1]/nav/button[5]").click()
 
-            time.sleep(3)
+            time.sleep(5)
             # select and click download
             driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div[3]/div[1]/div[2]/div/div["
                                           "4]/div[2]/div[1]/div[2]/div[1]/button[3]").click()
@@ -120,25 +132,45 @@ def crawl():
 
             time.sleep(1)
 
-            files = glob.iglob('.\\downloads\\*')
-            max_file = max(files, key=os.path.getctime)
-            original_file_name = max_file
-            max_file_split = max_file.split('\\')
-            filename = max_file_split[len(max_file_split) - 1].split('.')
-            extension = filename[len(filename) - 1]
-            # print(max_file_split)
-            # print(filename)
-            # print(extension)
-            new_file_name = "Type " + study_type + " " + str(currentRow) + "." + extension
-            # print(new_file_name)
-            os.rename(original_file_name, '.\\downloads\\' + new_file_name)
+            for x in os.walk(temp_directory_path):
+                download_file_path = x[0] + '\\' + x[2][0]
+                filetype = x[2][0].split('.')[len(x[2][0].split('.')) - 1]
+                # print(download_file_path + " " + filetype)
+
+                new_path = download_directory_path + '\\' + "Type " + study_type + " " + str(file_id) + \
+                           "." + filetype
+                # print(new_path)
+                Path(download_directory_path).mkdir(parents=True, exist_ok=True)
+                time.sleep(0.2)
+                shutil.copy2(download_file_path, new_path)
+                time.sleep(0.2)
+                os.remove(download_file_path)
+                os.rmdir(temp_directory_path)
+                break
+
+            time.sleep(0.5)
+
+            # files = glob.iglob('.\\downloads\\*')
+            # max_file = max(files, key=os.path.getctime)
+            # original_file_name = max_file
+            # max_file_split = max_file.split('\\')
+            # filename = max_file_split[len(max_file_split) - 1].split('.')
+            # extension = filename[len(filename) - 1]
+            # # print(max_file_split)
+            # # print(filename)
+            # # print(extension)
+            # new_file_name = "Type " + study_type + " " + str(currentRow) + "." + extension
+            # # print(new_file_name)
+            # os.rename(original_file_name, '.\\downloads\\' + new_file_name)
+
 
             # hit back button
             driver.find_element(By.XPATH, '//*[@id="btnBackToSearchResult"]').click()
             currentRow += 1
+            file_id += 1
 
             time.sleep(0.5)
-    except:
+    except ValueError:
         driver.close()
         print("restarting... (nothing to worry about)")
         time.sleep(10)

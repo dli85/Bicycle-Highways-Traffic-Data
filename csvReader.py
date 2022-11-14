@@ -16,6 +16,5 @@ def read_csv(filename, startingRow):
                 result.append(original_file)
             line_number += 1
 
-    print(result)
-    input()
+    # print(result)
     return result
