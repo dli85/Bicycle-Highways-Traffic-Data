@@ -8,6 +8,8 @@ import natsort
 import shutil
 
 from csvReader import read_csv
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 # TODO:
 
@@ -44,41 +46,41 @@ def crawl():
     driver = webdriver.Chrome('./driver/chromedriver.exe', options=chrome_options)
     driver.get(url)
 
-    time.sleep(10)
-
     # Select archive date
-    archive_date_selector = driver.find_element(By.XPATH, "//body[@id='dmsBody']/div[@ng-hide='unload']/div["
-                                                          "@class='ng-scope']/div[@class='ng-scope']/div["
-                                                          "@class='container']/div[@id='view']/div["
-                                                          "@class='ng-scope']/form[@class='sc-form-page paddingLeft15 "
-                                                          "ng-pristine ng-valid ng-scope ng-isolate-scope "
-                                                          "ng-valid-range ng-valid-date ng-valid-sceris-date "
-                                                          "ng-valid-pattern']/div["
-                                                          "@class='sc-form-page-form-outer']/div["
-                                                          "@class='sc-form-page-form-inner']/div[@class='row "
-                                                          "searchPageContainer ng-scope']/div[@class='col-md-12 "
-                                                          "searchPaneZindex ng-scope']/loading-spinner["
-                                                          "@class='ng-isolate-scope']/span["
-                                                          "@data-ng-hide='showSpinner']/div["
-                                                          "@class='ng-scope']/div/div[@class='row']/div["
-                                                          "@class='col-md-12']/loading-spinner[@class='ng-scope "
-                                                          "ng-isolate-scope']/span[@data-ng-hide='showSpinner']/div["
-                                                          "@class='mayDrag ng-pristine ng-untouched ng-valid ng-scope "
-                                                          "ng-isolate-scope ui-sortable ui-sortable-disabled']/div["
-                                                          "1]/span[2]/span[1]/div[1]/div[1]/criterion-operation["
-                                                          "1]/li[1]/a[1]")
-    archive_date_selector.click()
-    not_blank_selection = driver.find_element(By.XPATH, "//li[@class='dropdown sc-input-narrow-width cursor-default "
-                                                        "open']//ul[@class='dropdown-menu available-items']//li["
-                                                        "@class='criterion-operation-list-item'][contains(text(),"
-                                                        "'Not Blank')]")
-    not_blank_selection.click()
-    search_button = driver.find_element(By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[1]/div[2]/div[3]/div[2]/form["
-                                                  "1]/div[2]/div[1]/div[2]/div[1]/button[1]")
-    search_button.click()
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, "//body[@id='dmsBody']/div[@ng-hide='unload']/div["
+                                              "@class='ng-scope']/div[@class='ng-scope']/div["
+                                              "@class='container']/div[@id='view']/div["
+                                              "@class='ng-scope']/form[@class='sc-form-page paddingLeft15 "
+                                              "ng-pristine ng-valid ng-scope ng-isolate-scope "
+                                              "ng-valid-range ng-valid-date ng-valid-sceris-date "
+                                              "ng-valid-pattern']/div["
+                                              "@class='sc-form-page-form-outer']/div["
+                                              "@class='sc-form-page-form-inner']/div[@class='row "
+                                              "searchPageContainer ng-scope']/div[@class='col-md-12 "
+                                              "searchPaneZindex ng-scope']/loading-spinner["
+                                              "@class='ng-isolate-scope']/span["
+                                              "@data-ng-hide='showSpinner']/div["
+                                              "@class='ng-scope']/div/div[@class='row']/div["
+                                              "@class='col-md-12']/loading-spinner[@class='ng-scope "
+                                              "ng-isolate-scope']/span[@data-ng-hide='showSpinner']/div["
+                                              "@class='mayDrag ng-pristine ng-untouched ng-valid ng-scope "
+                                              "ng-isolate-scope ui-sortable ui-sortable-disabled']/div["
+                                              "1]/span[2]/span[1]/div[1]/div[1]/criterion-operation["
+                                              "1]/li[1]/a[1]"))).click()
+    # archive_date_selector.click()
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, "//li[@class='dropdown sc-input-narrow-width cursor-default "
+                                              "open']//ul[@class='dropdown-menu available-items']//li["
+                                              "@class='criterion-operation-list-item'][contains(text(),"
+                                              "'Not Blank')]"))).click()
+
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[1]/div["
+                                                                          "2]/div[3]/div[2]/form[ "
+                                                                          "1]/div[2]/div[1]/div[2]/"
+                                                                          "div[1]/button[1]"))).click()
 
     time.sleep(3)
-
     try:
         for i in range(currentRow, len(search_list)):
             print("Progress: working on", str(currentRow + 1), "/", str(len(search_list)))
@@ -95,43 +97,57 @@ def crawl():
             original_file_field.send_keys(string)
 
             # click archive_date_sort twice
-            archive_date_sort = driver.find_element(By.XPATH,
-                                                    "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div[2]/div["
-                                                    "1]/div[2]/div[2]/div[2]/div/div[2]/div[2]/div/div[1]/div["
-                                                    "1]/div/div/div/div/div/div[1]/div[1]/div[1]")
-            archive_date_sort.click()
-            time.sleep(0.1)
-            archive_date_sort.click()
+            WebDriverWait(driver, 10) \
+                .until(EC.element_to_be_clickable((By.XPATH,
+                                                   "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div[2]/div["
+                                                   "1]/div[2]/div[2]/div[2]/div/div[2]/div["
+                                                   "2]/div/div[1]/div[ "
+                                                   "1]/div/div/div/div/div/div[1]/div[1]/div[1]"))).click()
+            WebDriverWait(driver, 10) \
+                .until(EC.element_to_be_clickable((By.XPATH,
+                                                   "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div[2]/div["
+                                                   "1]/div[2]/div[2]/div[2]/div/div[2]/div["
+                                                   "2]/div/div[1]/div[ "
+                                                   "1]/div/div/div/div/div/div[1]/div[1]/div[1]"))).click()
 
             study_type = driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div[2]/div["
                                                        "1]/div[2]/div[2]/div[2]/div/div[2]/div[2]/div/div[1]/div["
                                                        "2]/div/div[1]/div/div[11]/div").text
 
             # select row and click
-            driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div[2]/div[1]/div[2]/div["
-                                          "2]/div[2]/div/div[2]/div[2]/div/div[1]/div[2]/div/div/div/div[1]/div").click()
 
-            time.sleep(0.2)
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH,
+                                                                        "/html/body/div[1]/div/div/div["
+                                                                        "2]/div[3]/div/div/div[2]/div["
+                                                                        "1]/div[2]/div[ "
+                                                                        "2]/div[2]/div/div[2]/div[2]/div/div[1]/div["
+                                                                        "2]/div/div/div/div[1]/div"))).click()
 
             # Select and click view document button
-            driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div/div[2]/div[1]/div[2]/div["
-                                          "2]/div[2]/div/div[1]/nav/button[5]").click()
-
-            time.sleep(5)
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div/div/div["
+                                                                                  "2]/div[3]/div/div/div[2]/div["
+                                                                                  "1]/div[2]/div[ "
+                                                                                  "2]/div[2]/div/div[1]/nav/button[5]"))
+                                            ).click()
             # select and click download
-            driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div[3]/div[1]/div[2]/div/div["
-                                          "4]/div[2]/div[1]/div[2]/div[1]/button[3]").click()
-            time.sleep(0.5)
-            # select and hit download left side
-            driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div[3]/div[1]/div[2]/div/div["
-                                          "4]/div[5]/div[7]/div[2]/button").click()
-            time.sleep(0.5)
-            # select and hit save
-            driver.find_element(By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div[3]/div[1]/div[2]/div/div["
-                                          "4]/div[23]/div/div/div[2]/button[2]").click()
-
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div/div/div["
+                                                                                  "2]/div[3]/div/div[3]/div[1]/div["
+                                                                                  "2]/div/div[ "
+                                                                                  "4]/div[2]/div[1]/div[2]/div["
+                                                                                  "1]/button[3]"))).click()
             time.sleep(1)
+            # select and hit download left side
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div/div/div["
+                                                                                  "2]/div[3]/div/div[3]/div[1]/div["
+                                                                                  "2]/div/div[ "
+                                                                                  "4]/div[5]/div["
+                                                                                  "7]/div[2]/button"))).click()
 
+            # select and hit save
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable(
+                (By.XPATH, "/html/body/div[1]/div/div/div[2]/div[3]/div/div[3]/div[1]/div[2]/div/div["
+                           "4]/div[23]/div/div/div[2]/button[2]"))).click()
+            time.sleep(1)
             for x in os.walk(temp_directory_path):
                 download_file_path = x[0] + '\\' + x[2][0]
                 filetype = x[2][0].split('.')[len(x[2][0].split('.')) - 1]
@@ -148,7 +164,7 @@ def crawl():
                 os.rmdir(temp_directory_path)
                 break
 
-            time.sleep(0.5)
+            time.sleep(1)
 
             # files = glob.iglob('.\\downloads\\*')
             # max_file = max(files, key=os.path.getctime)
@@ -162,7 +178,6 @@ def crawl():
             # new_file_name = "Type " + study_type + " " + str(currentRow) + "." + extension
             # # print(new_file_name)
             # os.rename(original_file_name, '.\\downloads\\' + new_file_name)
-
 
             # hit back button
             driver.find_element(By.XPATH, '//*[@id="btnBackToSearchResult"]').click()
