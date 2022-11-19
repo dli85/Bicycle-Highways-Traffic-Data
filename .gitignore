@@ -2,3 +2,4 @@
 downloads
 __pycache__/
 temp
+sumo_xml/*.xml

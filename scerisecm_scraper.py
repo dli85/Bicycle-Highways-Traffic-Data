@@ -11,8 +11,6 @@ from csvReader import read_csv
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-# TODO:
-
 url = 'https://scerisecm.boston.gov/ScerIS/CmPublic/#/SearchCriteria?f=56'
 csv_path = 'search results.csv'
 project_path = 'C:\\Users\\dali7\\PycharmProjects\\Traffic-data-scraper'
