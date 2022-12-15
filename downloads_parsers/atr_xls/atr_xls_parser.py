@@ -95,13 +95,5 @@ if __name__ == '__main__':
     update_pickle_file(parsed_files_path, parsed_files)
     update_pickle_file(all_file_data_file_path, all_file_data)
 
-    with open("data.txt", "w") as file:
-        for street_data in all_file_data:
-            print("Street name: " + street_data, file=file)
-            print("Direction type: " + all_file_data[street_data]['direction_type'], file=file)
-            print("Car totals by time: ", file=file)
-            for tup in all_file_data[street_data]['times_and_totals']:
-                print(tup[0] + ": " + str(tup[1]), file=file)
-            print("Overall total: " + str(all_file_data[street_data]['total']), file=file)
-            print("\n\n", file=file)
+
 
