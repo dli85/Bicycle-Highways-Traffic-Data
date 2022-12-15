@@ -4,11 +4,14 @@ import os
 from pickle_utils import write_pickle_if_not_exists, read_pickle
 
 
+# TODO: Add averages for duplicate streets?
+
 downloads_dir = '../../downloads'
 desired_keywords = "Type AUTOMATED TRAFFIC RECORDING"
 desired_extension = ".xls"
 parsed_files_path = "../parsed_files.pickle"
 all_file_data = {}
+all_file_data_file_path = 'atr_xls_data.pickle'
 parsed_files = set()
 
 
@@ -73,12 +76,12 @@ def read_parsed_files():
         pass
 
 
-def update_parsed_files():
+def update_pickle_file(file_path, data):
     try:
-        os.remove(parsed_files_path)
-        write_pickle_if_not_exists(parsed_files_path, parsed_files)
+        os.remove(file_path)
+        write_pickle_if_not_exists(file_path, data)
     except FileNotFoundError:
-        write_pickle_if_not_exists(parsed_files_path, parsed_files)
+        write_pickle_if_not_exists(file_path, data)
     except PermissionError:
         print("Trying to delete parsed_files file to overwrite it, permission error")
 
@@ -86,9 +89,19 @@ def update_parsed_files():
 if __name__ == '__main__':
     xls_list = gen_list()
     read_parsed_files()
-
     for path in xls_list:
         parse_xls(downloads_dir + "/" + path)
         parsed_files.add(path)
-    update_parsed_files()
-    print(all_file_data.keys())
+    update_pickle_file(parsed_files_path, parsed_files)
+    update_pickle_file(all_file_data_file_path, all_file_data)
+
+    with open("data.txt", "w") as file:
+        for street_data in all_file_data:
+            print("Street name: " + street_data, file=file)
+            print("Direction type: " + all_file_data[street_data]['direction_type'], file=file)
+            print("Car totals by time: ", file=file)
+            for tup in all_file_data[street_data]['times_and_totals']:
+                print(tup[0] + ": " + str(tup[1]), file=file)
+            print("Overall total: " + str(all_file_data[street_data]['total']), file=file)
+            print("\n\n", file=file)
+
