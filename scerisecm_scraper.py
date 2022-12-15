@@ -9,6 +9,7 @@ from pathlib import Path
 import natsort
 import shutil
 
+
 from csvReader import read_csv
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -23,7 +24,7 @@ download_directory_path = project_path + '\\downloads'
 temp_directory_path_relative = './temp'
 download_directory_path_relative = './downloads'
 
-file_id = 980
+file_id = 0
 
 currentRow = 0
 search_list = []
