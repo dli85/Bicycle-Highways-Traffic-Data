@@ -62,10 +62,16 @@ def parse_xls(xls_file_path):
     current_file_data['total'] = all_rows_total
 
     if street_name in all_file_data:
+        count = 0
+        for key in all_file_data:
+            if street_name in key:
+                count += 1
+
+        all_file_data[street_name + " " + str(count + 1)] = current_file_data
         # print("DUPLICATE")
         pass
-
-    all_file_data[street_name] = current_file_data
+    else:
+        all_file_data[street_name] = current_file_data
 
 
 def read_parsed_files():
@@ -94,6 +100,7 @@ if __name__ == '__main__':
         parsed_files.add(path)
     update_pickle_file(parsed_files_path, parsed_files)
     update_pickle_file(all_file_data_file_path, all_file_data)
+
 
 
 
