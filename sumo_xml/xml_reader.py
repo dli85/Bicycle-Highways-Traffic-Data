@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-import pickle
+from pickle_utils import write_pickle_if_not_exists, read_pickle
 import os
 
 xml_path = 'osm.net.xml'
@@ -38,25 +38,11 @@ def populate_info():
                 S.add_to_id_to_from(edge_id, to, _from)
 
 
-def write_pickle_if_not_exists(file_name):
-    if not os.path.exists(file_name):
-        f = open(file_name, 'wb')
-        pickle.dump(info, f)
-        f.close()
-
-
-def read_pickle(file_name):
-    f = open(file_name, 'rb')
-    data = pickle.load(f)
-    f.close()
-    return data
-
-
 if __name__ == '__main__':
     if not os.path.exists(pickle_file_name):
         populate_info()
 
-    write_pickle_if_not_exists(pickle_file_name)
+    write_pickle_if_not_exists(pickle_file_name, info)
 
     data = read_pickle(pickle_file_name)
 
