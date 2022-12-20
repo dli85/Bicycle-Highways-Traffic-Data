@@ -4,3 +4,4 @@ __pycache__/
 temp
 sumo_xml/*.xml
 downloads_parsers/atr_xls/data.txt
+/api/api.env

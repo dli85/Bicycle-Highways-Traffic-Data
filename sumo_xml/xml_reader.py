@@ -1,19 +1,11 @@
 from bs4 import BeautifulSoup
 from pickle_utils import write_pickle_if_not_exists, read_pickle
+from StreetData import StreetData
 import os
 
 xml_path = 'osm.net.xml'
-pickle_file_name = 'street_info.pickle'
+pickle_file_name = 'street_info.pkl'
 info = {}
-
-
-class StreetData:
-    def __init__(self, street_name):
-        self.street_name = street_name
-        self.id_to_from = {}
-
-    def add_to_id_to_from(self, id, edge_to, edge_from):
-        self.id_to_from[id] = (edge_to, edge_from)
 
 
 def populate_info():
