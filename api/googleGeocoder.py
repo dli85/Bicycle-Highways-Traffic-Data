@@ -73,6 +73,7 @@ if __name__ == '__main__':
     # print(str(start_lat) + ", " + str(start_lng))
     # print(str(end_lat) + ", " + str(end_lng))
 
-    polyline_demo()
+    # polyline_demo()
     # map_quest_get_bounds(street_name)
+    pass
 
