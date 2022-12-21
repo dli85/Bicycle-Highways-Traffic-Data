@@ -12,6 +12,7 @@ street_name = "Huntington Avenue, Boston, MA"
 gmaps = googlemaps.Client(key=API_KEY_GOOGLE)
 
 
+# Not needed
 def get_street_bounds(name_of_street):
     geocode_result = gmaps.geocode(name_of_street)
 
@@ -26,6 +27,7 @@ def get_street_bounds(name_of_street):
         endpoint_2['northeast']['lat'], endpoint_2['northeast']['lng'],
 
 
+# Not needed
 def map_quest_get_bounds(name_of_street):
     api_key = API_KEY_MAP_QUEST
 
@@ -48,12 +50,28 @@ def map_quest_get_bounds(name_of_street):
     print(data)
 
 
+# Waypoint format should be like the following: "1 Huntington Ave, Boston, MA 02116"
+# Waypoints MUST BE in ascending/descending order according to origin/destination
+def waypoints_to_string(list_of_waypoints):
+    result = ""
+
+    for address in list_of_waypoints:
+        plus_replace_space = address.replace(" ", "+")
+        result += "via:" + plus_replace_space + "|"
+
+    return result
+
+
 def polyline_demo():
-    origin = '3700 Huntington Avenue, Boston, MA'
-    destination = '1 Huntington Avenue, Boston, MA'
+    origin = '3700 Huntington Avenue, Boston, MA 02116'
+    destination = '1 Huntington Avenue, Boston, MA 02116'
     waypoints = 'via:3000+Huntington+Avenue,+Boston,+MA|' \
                 'via:2000+Huntington+Avenue,+Boston,+MA|' \
                 'via:1000+Huntington+Avenue,+Boston,+MA|'
+
+    waypoints = waypoints_to_string(["3000 Huntington Ave, Boston, MA 02116",
+                                     "2000 Huntington Ave, Boston, MA 02116",
+                                     "1000 Huntington Ave, Boston, MA 02116"])
 
     response = requests.get(
         f'https://maps.googleapis.com/maps/api/directions/json?origin={origin}&destination={destination}'

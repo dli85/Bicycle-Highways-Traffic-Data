@@ -14,9 +14,6 @@ gmaps = googlemaps.Client(key=API_KEY_GOOGLE)
 overall_results = []
 streets_possible_coordinates = []
 
-cities = ['Boston', 'Newton', 'Wellesley', 'Weston', 'Brookline',
-          'Roxbury', ]
-
 # every item is a tuple: (street name, (origin address, destination address, [waypoint 1, waypoint 2, ...]))
 # (string, (string, string, [strings...]))
 start_end_waypoints = []
@@ -53,10 +50,9 @@ def street_bound_finder(possible_cords_dict):
                 latitude = lat_lng['lat']
                 longitude = lat_lng['lng']
                 print(street_name + " " + str(latitude) + ", " + str(longitude))
-                if lat_bottom < latitude < lat_top and lng_left < longitude < lng_right:
-                    print(str(latitude) + ", " + str(longitude) + "    IN")
-                    origin, destination = street_origin_destination_address_finder(latitude, longitude)
-                    break
+
+                origin, destination = street_origin_destination_address_finder(street_name, latitude, longitude)
+                break
             if origin is None:
                 start_end_waypoints.append((street_name, None))
             else:
@@ -65,16 +61,25 @@ def street_bound_finder(possible_cords_dict):
 
 
 # Takes in a latitude and longitude of a street, finds the bounds as addresses
-def street_origin_destination_address_finder(lat, lng):
+def street_origin_destination_address_finder(street_name, lat, lng):
     driver = webdriver.Chrome('./../driver/chromedriver.exe')
     driver.get("https://www.google.com/maps")
+
+    # TODO: First get the city, zipcode, and state. Then find addresses by appending the city zipcode and state
+    #  to the street name.
+
     input()
     driver.close()
-    return 0, 0
+    return "1600 pennsylvania ave", "1 Huntington ave"
 
 
+# Address should be in the form "<number> <street name>, city, state zipcode"
 def calculate_waypoints(origin_address, destination_address):
     waypoints = []
+
+    # TODO: get waypoints using binary search. I.e. 1 Huntington avenue to 3700 Huntington avenue should produce
+    #  [1000 Huntington avenue, 2000, huntington avenue, 3000 huntington avenue]. Don't need to be complete, just need
+    #  to ensure that the polyline goes through the road.
 
     return waypoints
 
@@ -83,8 +88,8 @@ def calculate_waypoints(origin_address, destination_address):
 # Google Geocoding Api
 def get_initial_cords(list_of_street_names):
     # southwest corner then northeast corner
-    bounds = {'southwest': (42.2850683687529, -71.31280840343489),
-              "northeast": (42.358287400703084, -71.05632401053465)}
+    bounds = {'southwest': (lat_bottom, lng_left),
+              "northeast": (lat_top, lng_right)}
     for street_name in list_of_street_names:
         geocode_result = gmaps.geocode(street_name, bounds=bounds)
         overall_results.append((street_name, geocode_result))
@@ -104,7 +109,10 @@ if __name__ == '__main__':
     data = read_pickle(street_info_pickle_path)
     street_names = data.keys()
 
-    get_initial_cords(street_names)
+    streets_possible_cords = read_pickle('street_main_cords_possible_cords.pkl')
 
-    # streets_possible_cords = read_pickle('street_main_cords_possible_cords.pkl')
-    # street_bound_finder(streets_possible_cords)
+    # for tup in streets_possible_cords:
+    #     print(tup)
+
+    street_bound_finder(streets_possible_cords)
+
