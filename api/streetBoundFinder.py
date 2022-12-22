@@ -4,6 +4,11 @@ import googlemaps
 from pickle_utils import write_pickle_if_not_exists, read_pickle
 from StreetData import StreetData
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import TimeoutException
 import time
 
 street_info_pickle_path = "./../sumo_xml/street_info.pkl"
@@ -23,12 +28,9 @@ streets_all_cords_file_path = 'street_main_cords_possible_cords.pkl'
 
 street_types = {'Street', 'St', 'Road', 'Rd'}
 
-# Right edge 42.352941570051286, -71.05632401053465
-# Top edge: 42.358287400703084, -71.10959837968905
-# Bottom Edge: 42.2850683687529, -71.09142851516339
-# Left Edge: 42.30537562165206, -71.31280840343489
+# Amount of seconds to wait
+driver_wait = 10
 
-#
 # Box: top = 42.358287400703084, bottom = 42.2850683687529, left = -71.31280840343489, right = -71.05632401053465
 lat_top = 42.358287400703084
 lat_bottom = 42.2850683687529
@@ -65,8 +67,54 @@ def street_origin_destination_address_finder(street_name, lat, lng):
     driver = webdriver.Chrome('./../driver/chromedriver.exe')
     driver.get("https://www.google.com/maps")
 
-    # TODO: First get the city, zipcode, and state. Then find addresses by appending the city zipcode and state
-    #  to the street name.
+    WebDriverWait(driver, driver_wait).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="searchboxinput"]'))) \
+        .click()
+    searchbar = driver.find_element_by_xpath('//*[@id="searchboxinput"]')
+    searchbar.send_keys(f'{lat}, {lng}'.format(lat=lat, lng=lng), Keys.RETURN)
+    WebDriverWait(driver, driver_wait).until(EC.element_to_be_clickable((By.XPATH,
+                                                                         '/html/body/div[3]/div['
+                                                                         '9]/div[9]/div/div/div['
+                                                                         '1]/div[2]/div/div['
+                                                                         '1]/div/div/div[10]/div/div['
+                                                                         '1]/span[3]/span[3]')))
+
+    nearby_address = driver.find_element_by_xpath('/html/body/div[3]/div['
+                                                  '9]/div[9]/div/div/div['
+                                                  '1]/div[2]/div/div['
+                                                  '1]/div/div/div[10]/div/div['
+                                                  '1]/span[3]/span[3]').text
+
+    h1_street_name_xpath = '/html/body/div[3]/div[9]/div[9]/div/div/div[1]/div[2]/div/div[1]/div/div/div[2]/div[' \
+                           '1]/div[1]/div[1]/h1 '
+
+    nearby_address_arr = nearby_address.split(',')
+    city = nearby_address_arr[-2:][0].strip()
+    state_and_zip = nearby_address_arr[-2:][1].strip()
+
+    h1_initial_cords = driver.find_element_by_xpath(h1_street_name_xpath).text
+
+    street_address_no_numbers = f'{street_name}, {city}, {state_and_zip}'.format(street_name=street_name,
+                                                                                 city=city,
+                                                                                 state_and_zip=state_and_zip)
+
+    searchbar.clear()
+    searchbar.send_keys(street_address_no_numbers, Keys.RETURN)
+    # This is the default street name. It comes up when you search for the street with no address or if the address
+    # is invalid: (i.e. 10000 Huntington Ave)
+
+    WebDriverWait(driver, driver_wait).until_not(
+        EC.text_to_be_present_in_element((By.XPATH, '/html/body/div[3]/div[9]/div[9]/div/div/div[1]/div[2]'
+                                                    '/div/div[1]/div/div/div[2]/div[1]/div[1]/div[1]/h1'),
+                                         h1_initial_cords))
+
+    h1_initial_street_name = driver.find_element_by_xpath(
+        '/html/body/div[3]/div[9]/div[9]/div/div/div[1]/div[2]/div/div['
+        '1]/div/div/div[2]/div[1]/div[1]/div[1]/h1').text
+
+    print(city)
+    print(state_and_zip)
+    print(h1_initial_street_name)
+    # TODO: find the bounds of the street by testing addresses and comparing to h1_initial_street_name
 
     input()
     driver.close()
@@ -115,4 +163,3 @@ if __name__ == '__main__':
     #     print(tup)
 
     street_bound_finder(streets_possible_cords)
-
