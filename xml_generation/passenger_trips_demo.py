@@ -10,7 +10,7 @@ number_of_trips = 40000
 new_file_name = 'osm.passenger.trips.demo.xml'
 v_type = 'veh_passenger'
 street_info_pickle_file_path = '../sumo_xml/street_info.pkl'
-depart_increment = 0.9
+depart_increment = 0.09
 
 
 def write_xml(filename, root):
