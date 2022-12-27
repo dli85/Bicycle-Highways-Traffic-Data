@@ -116,6 +116,20 @@ def street_origin_destination_address_finder(street_name, lat, lng):
     print(h1_initial_street_name)
     # TODO: find the bounds of the street by testing addresses and comparing to h1_initial_street_name
 
+    # Find min address
+
+    # /html/body/div[3]/div[9]/div[9]/div/div/div[1]/div[2]/div/div[1]/div/div/div[12]/div/div[1]/span[3]/span[3]
+    # containing Add a missing place = address not found
+    # containing Suggest an edit = address found
+
+    back_half_address = f'{street_name}, {city}, {state_and_zip}'.format(street_name=street_name,
+                                                                         city=city,
+                                                                         state_and_zip=state_and_zip)
+
+    address_number = 1
+
+
+
     input()
     driver.close()
     return "1600 pennsylvania ave", "1 Huntington ave"
