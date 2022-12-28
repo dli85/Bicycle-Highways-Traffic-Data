@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import googlemaps
 import requests
 import polyline
+import time
 
 load_dotenv("api.env")
 API_KEY_GOOGLE = os.getenv('API_KEY_GOOGLE_MAPS')
@@ -63,26 +64,27 @@ def waypoints_to_string(list_of_waypoints):
 
 
 def polyline_demo():
-    origin = '3700 Huntington Avenue, Boston, MA 02116'
-    destination = '1 Huntington Avenue, Boston, MA 02116'
-    waypoints = 'via:3000+Huntington+Avenue,+Boston,+MA|' \
-                'via:2000+Huntington+Avenue,+Boston,+MA|' \
-                'via:1000+Huntington+Avenue,+Boston,+MA|'
-
-    waypoints = waypoints_to_string(["3000 Huntington Ave, Boston, MA 02116",
-                                     "2000 Huntington Ave, Boston, MA 02116",
-                                     "1000 Huntington Ave, Boston, MA 02116"])
+    origin = '18 Kilmarnock St, Boston, MA 02215'
+    destination = '50 Kilmarnock St, Boston, MA 02215'
+    waypoints = '30 Kilmarnock St, Boston, MA 02215'
 
     response = requests.get(
         f'https://maps.googleapis.com/maps/api/directions/json?origin={origin}&destination={destination}'
         f'&waypoints={waypoints}&key={API_KEY_GOOGLE}')
-
+    print(response.json())
+    distance = (response.json()['routes'][0]['legs'][0]['distance']['text'],
+                response.json()['routes'][0]['legs'][0]['distance']['value'])
+    duration = (response.json()['routes'][0]['legs'][0]['duration']['text'],
+                response.json()['routes'][0]['legs'][0]['duration']['value'])
     polyline_string = response.json()['routes'][0]['overview_polyline']['points']
 
     points = polyline.decode(polyline_string)
     print('points')
     for point in points:
         print(point)
+
+    print(duration)
+    print(distance)
 
 
 if __name__ == '__main__':
@@ -91,7 +93,9 @@ if __name__ == '__main__':
     # print(str(start_lat) + ", " + str(start_lng))
     # print(str(end_lat) + ", " + str(end_lng))
 
-    # polyline_demo()
+    # polyline = polyline_demo()
+    # polyline = 'enc:_p~iF~ps|U_ulLnnqC_mqNvxq`@'
     # map_quest_get_bounds(street_name)
+    polyline_demo()
     pass
 

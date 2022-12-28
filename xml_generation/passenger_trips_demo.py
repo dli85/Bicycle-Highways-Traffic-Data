@@ -1,4 +1,5 @@
 import random
+from random import shuffle
 import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
 from pickle_utils import read_pickle
@@ -47,27 +48,28 @@ if __name__ == '__main__':
         trip_count = int(number_of_trips * (len(edges) / sum(len(edges) if len(edges) >= 5 else 0 for _, edges in street_name_edge_ids)))
         # trip_count = int(number_of_trips * (len(street_name_edge_ids) - i) / len(street_name_edge_ids))
         print(street, trip_count)
-        trip_counts.append((street, trip_count, edges))
+        for j in range(trip_count):
+            trip_counts.append((street, edges))
 
+    shuffle(trip_counts)
     sum = 0
-    for street, trip_count, edges in trip_counts:
-        sum += trip_count
+    for street, edges in trip_counts:
+        sum += 1
     print(sum)
     input()
 
     trip_id = 'veh'
     trip_id_count = 0
-    for street, trip_count, edges in trip_counts:
-        for i in range(trip_count):
-            init_depart += depart_increment
-            trip = ET.SubElement(root, "trip")
-            trip.set("id", f"{trip_id}{trip_id_count}")
-            trip.set("depart", str(round(init_depart, 2)))
-            trip.set("type", v_type)
-            trip.set("departLane", "best")
-            trip.set("from", random.choice(edges))
+    for street, edges in trip_counts:
+        init_depart += depart_increment
+        trip = ET.SubElement(root, "trip")
+        trip.set("id", f"{trip_id}{trip_id_count}")
+        trip.set("depart", str(round(init_depart, 2)))
+        trip.set("type", v_type)
+        trip.set("departLane", "best")
+        trip.set("from", random.choice(edges))
 
-            destination = random.choice(edges) if edges else random.choice(random.choice(street_name_edge_ids)[1])
-            trip.set("to", destination)
-            trip_id_count += 1
+        destination = random.choice(edges) if edges else random.choice(random.choice(street_name_edge_ids)[1])
+        trip.set("to", destination)
+        trip_id_count += 1
     write_xml(new_file_name, root)

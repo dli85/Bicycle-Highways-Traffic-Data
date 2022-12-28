@@ -39,6 +39,7 @@ lng_right = -71.05632401053465
 
 
 def street_bound_finder(possible_cords_dict):
+    driver = webdriver.Chrome('./../driver/chromedriver.exe')
     for tuple_elem in possible_cords_dict:
         street_name = tuple_elem[0]
         lat_lng_dicts = tuple_elem[1]
@@ -53,7 +54,9 @@ def street_bound_finder(possible_cords_dict):
                 longitude = lat_lng['lng']
                 print(street_name + " " + str(latitude) + ", " + str(longitude))
 
-                origin, destination = street_origin_destination_address_finder(street_name, latitude, longitude)
+                # lower, upper
+                driver, origin, destination = street_origin_destination_address_finder(driver, street_name,
+                                                                                       latitude, longitude)
                 break
             if origin is None:
                 start_end_waypoints.append((street_name, None))
@@ -63,8 +66,7 @@ def street_bound_finder(possible_cords_dict):
 
 
 # Takes in a latitude and longitude of a street, finds the bounds as addresses
-def street_origin_destination_address_finder(street_name, lat, lng):
-    driver = webdriver.Chrome('./../driver/chromedriver.exe')
+def street_origin_destination_address_finder(driver, street_name, lat, lng):
     driver.get("https://www.google.com/maps")
 
     WebDriverWait(driver, driver_wait).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="searchboxinput"]'))) \
@@ -110,7 +112,7 @@ def street_origin_destination_address_finder(street_name, lat, lng):
     h1_initial_street_name = driver.find_element_by_xpath(
         '/html/body/div[3]/div[9]/div[9]/div/div/div[1]/div[2]/div/div['
         '1]/div/div/div[2]/div[1]/div[1]/div[1]/h1').text
-
+    time.sleep(0.5)
     print(city)
     print(state_and_zip)
     print(h1_initial_street_name)
@@ -126,13 +128,57 @@ def street_origin_destination_address_finder(street_name, lat, lng):
                                                                          city=city,
                                                                          state_and_zip=state_and_zip)
 
+    # Finding lower bound
+    lower_bound_address = None
     address_number = 1
+    notFound = True
+    while notFound:
+        address_to_search = f'{address_number} {back_half_address}'
+        if address_exists(driver, h1_initial_street_name, address_to_search, searchbar):
+            notFound = False
+            lower_bound_address = address_to_search
+        else:
+            address_number += 100
 
+    # Finding upper bound
+    lower = address_number
+    upper = 10000
+    hist = []
+    while upper - lower > 100:
+        mid = int((lower + upper) / 2)
+        address_to_search = f'{mid} {back_half_address}'
+        exists = address_exists(driver, h1_initial_street_name, address_to_search, searchbar)
+        if exists:
+            lower = mid + 1
+        else:
+            upper = mid - 1
+        hist.append((mid, exists))
 
-
+    for i in range(len(hist) - 1, 0, -1):
+        if hist[i][1]:
+            mid = hist[i][0]
+            break
+    upper_bound_address = f'{mid} {back_half_address}'
+    print(lower_bound_address)
+    print(upper_bound_address)
+    print(hist)
     input()
-    driver.close()
-    return "1600 pennsylvania ave", "1 Huntington ave"
+    return driver, lower_bound_address, upper_bound_address
+
+
+def address_exists(driver, street_name, address_to_enter, searchbar):
+    searchbar.clear()
+    searchbar.send_keys(address_to_enter, Keys.RETURN)
+    # Change this to webdriver wait?
+    time.sleep(2)
+    updated_address = driver.find_element_by_xpath('/html/body/div[3]/div[9]/div['
+                                                   '9]/div/div/div[1]/div[2] '
+                                                   '/div/div[1]/div/div/div[2]/div['
+                                                   '1]/div[1]/div[1]/h1').text
+    if updated_address == street_name:
+        return False
+    else:
+        return True
 
 
 # Address should be in the form "<number> <street name>, city, state zipcode"
