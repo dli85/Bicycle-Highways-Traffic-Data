@@ -8,7 +8,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import TimeoutException
 import time
 
 street_info_pickle_path = "./../sumo_xml/street_info.pkl"
@@ -25,11 +24,12 @@ start_end_waypoints = []
 
 overall_results_file_path = 'street_main_cords_overall_results.pkl'
 streets_all_cords_file_path = 'street_main_cords_possible_cords.pkl'
-
-street_types = {'Street', 'St', 'Road', 'Rd'}
+start_end_waypoints_file_path = 'start_end_waypoints.pkl'
 
 # Amount of seconds to wait
 driver_wait = 10
+
+reset_offset = 0
 
 # Box: top = 42.358287400703084, bottom = 42.2850683687529, left = -71.31280840343489, right = -71.05632401053465
 lat_top = 42.358287400703084
@@ -38,13 +38,15 @@ lng_left = -71.31280840343489
 lng_right = -71.05632401053465
 
 
-def street_bound_finder(possible_cords_dict):
+def street_bound_finder(streets_possible_cords_list):
     driver = webdriver.Chrome('./../driver/chromedriver.exe')
-    for tuple_elem in possible_cords_dict:
+    count = 1
+    for tuple_elem in streets_possible_cords_list:
         street_name = tuple_elem[0]
         lat_lng_dicts = tuple_elem[1]
         if len(lat_lng_dicts) == 0:
             start_end_waypoints.append((street_name, None))
+            print(f'{street_name} completed. {str(count + reset_offset)}/{len(streets_possible_cords_list) + reset_offset}')
         else:
             origin = None
             destination = None
@@ -52,7 +54,7 @@ def street_bound_finder(possible_cords_dict):
             for lat_lng in lat_lng_dicts:
                 latitude = lat_lng['lat']
                 longitude = lat_lng['lng']
-                print(street_name + " " + str(latitude) + ", " + str(longitude))
+                # print(street_name + " " + str(latitude) + ", " + str(longitude))
 
                 # lower, upper
                 driver, origin, destination = street_origin_destination_address_finder(driver, street_name,
@@ -60,10 +62,22 @@ def street_bound_finder(possible_cords_dict):
                 break
             if origin is None:
                 start_end_waypoints.append((street_name, None))
+                print(f'{street_name} completed. {count + reset_offset}/{len(streets_possible_cords_list) + reset_offset}')
             else:
                 waypoints = calculate_waypoints(origin, destination)
                 start_end_waypoints.append((street_name, (origin, destination, waypoints)))
+                print(f'{street_name} completed. {count + reset_offset}/{len(streets_possible_cords_list) + reset_offset}')
+                print((origin, destination, waypoints))
 
+        if count % 2 == 0:
+            write_pickle_if_not_exists(start_end_waypoints_file_path, start_end_waypoints, overwrite=True)
+            print(f'Saved up to row {str(count - 1 + reset_offset)}')
+        print(f'Completed row {str(count - 1 + reset_offset)}')
+        print()
+        count += 1
+
+    write_pickle_if_not_exists(start_end_waypoints_file_path, start_end_waypoints, overwrite=True)
+    print("Done!")
 
 # Takes in a latitude and longitude of a street, finds the bounds as addresses
 def street_origin_destination_address_finder(driver, street_name, lat, lng):
@@ -113,9 +127,6 @@ def street_origin_destination_address_finder(driver, street_name, lat, lng):
         '/html/body/div[3]/div[9]/div[9]/div/div/div[1]/div[2]/div/div['
         '1]/div/div/div[2]/div[1]/div[1]/div[1]/h1').text
     time.sleep(0.5)
-    print(city)
-    print(state_and_zip)
-    print(h1_initial_street_name)
     # TODO: find the bounds of the street by testing addresses and comparing to h1_initial_street_name
 
     # Find min address
@@ -159,10 +170,9 @@ def street_origin_destination_address_finder(driver, street_name, lat, lng):
             mid = hist[i][0]
             break
     upper_bound_address = f'{mid} {back_half_address}'
-    print(lower_bound_address)
-    print(upper_bound_address)
-    print(hist)
-    input()
+    # print(lower_bound_address)
+    # print(upper_bound_address)
+    # print(hist)
     return driver, lower_bound_address, upper_bound_address
 
 
@@ -170,7 +180,7 @@ def address_exists(driver, street_name, address_to_enter, searchbar):
     searchbar.clear()
     searchbar.send_keys(address_to_enter, Keys.RETURN)
     # Change this to webdriver wait?
-    time.sleep(2)
+    time.sleep(1.5)
     updated_address = driver.find_element_by_xpath('/html/body/div[3]/div[9]/div['
                                                    '9]/div/div/div[1]/div[2] '
                                                    '/div/div[1]/div/div/div[2]/div['
@@ -183,11 +193,19 @@ def address_exists(driver, street_name, address_to_enter, searchbar):
 
 # Address should be in the form "<number> <street name>, city, state zipcode"
 def calculate_waypoints(origin_address, destination_address):
+    origin_address_number = origin_address.split(" ")[0]
+    origin_address_back_half = origin_address.replace(origin_address_number + " ", "")
+    destination_address_number = destination_address.split(" ")[0]
+    destination_address_back_half = destination_address.replace(destination_address_number + " ", "")
+
+    num_waypoints = int(max(int(destination_address_number) / 1000, 1)) * 2
+    # print(num_waypoints)
+
     waypoints = []
 
-    # TODO: get waypoints using binary search. I.e. 1 Huntington avenue to 3700 Huntington avenue should produce
-    #  [1000 Huntington avenue, 2000, huntington avenue, 3000 huntington avenue]. Don't need to be complete, just need
-    #  to ensure that the polyline goes through the road.
+    for i in range(num_waypoints):
+        new_address_number = int((i + 1) / (num_waypoints + 1) * float(destination_address_number))
+        waypoints.append(f'{new_address_number} {origin_address_back_half}')
 
     return waypoints
 
@@ -214,6 +232,13 @@ def get_initial_cords(list_of_street_names):
 
 
 if __name__ == '__main__':
+    start_end_waypoints = read_pickle(start_end_waypoints_file_path)
+
+    for tup in start_end_waypoints:
+        print(tup)
+
+    input()
+
     data = read_pickle(street_info_pickle_path)
     street_names = data.keys()
 
@@ -222,4 +247,10 @@ if __name__ == '__main__':
     # for tup in streets_possible_cords:
     #     print(tup)
 
+    change_starting_point = input("Change starting point? [y/n] ")
+    if change_starting_point.lower().strip() == 'y':
+        new_starting_point = int(input(f"Enter the new starting point (0 to {len(streets_possible_cords) - 1}): "))
+        streets_possible_cords = streets_possible_cords[new_starting_point:]
+        start_end_waypoints = read_pickle(start_end_waypoints_file_path)
+        reset_offset = new_starting_point
     street_bound_finder(streets_possible_cords)

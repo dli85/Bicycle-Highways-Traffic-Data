@@ -2,11 +2,14 @@ import os
 import pickle
 
 
-def write_pickle_if_not_exists(file_name, data):
-    if not os.path.exists(file_name):
+def write_pickle_if_not_exists(file_name, data, overwrite=False):
+    if not overwrite:
+        if not os.path.exists(file_name):
+            with open(file_name, 'wb') as file:
+                pickle.dump(data, file)
+    else:
         with open(file_name, 'wb') as file:
             pickle.dump(data, file)
-
 
 
 def read_pickle(file_name):
