@@ -1,3 +1,6 @@
+# Get all the streets from our osm network and create a pickle file with the info.
+# Pickle file IS a dict that contains street information for every street such as name, id, etc.
+
 from bs4 import BeautifulSoup
 from pickle_utils import write_pickle_if_not_exists, read_pickle
 from StreetData import StreetData

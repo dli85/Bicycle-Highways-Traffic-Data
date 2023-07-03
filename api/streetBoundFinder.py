@@ -8,6 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import time
 
 street_info_pickle_path = "./../sumo_xml/street_info.pkl"
@@ -52,13 +53,21 @@ def street_bound_finder(streets_possible_cords_list):
             destination = None
             waypoints = None
             for lat_lng in lat_lng_dicts:
-                latitude = lat_lng['lat']
-                longitude = lat_lng['lng']
-                # print(street_name + " " + str(latitude) + ", " + str(longitude))
+                while True:
+                    latitude = lat_lng['lat']
+                    longitude = lat_lng['lng']
+                    # print(street_name + " " + str(latitude) + ", " + str(longitude))
 
-                # lower, upper
-                driver, origin, destination = street_origin_destination_address_finder(driver, street_name,
-                                                                                       latitude, longitude)
+                    # lower, upper
+                    try:
+                        driver, origin, destination = street_origin_destination_address_finder(driver, street_name,
+                                                                                           latitude, longitude)
+                        break
+                    except NoSuchElementException:
+                        origin = None
+                        break
+                    except TimeoutException:
+                        input("Solve the recapatcha then press enter")
                 break
             if origin is None:
                 start_end_waypoints.append((street_name, None))
@@ -122,7 +131,7 @@ def street_origin_destination_address_finder(driver, street_name, lat, lng):
         EC.text_to_be_present_in_element((By.XPATH, '/html/body/div[3]/div[9]/div[9]/div/div/div[1]/div[2]'
                                                     '/div/div[1]/div/div/div[2]/div[1]/div[1]/div[1]/h1'),
                                          h1_initial_cords))
-
+    time.sleep(0.5)
     h1_initial_street_name = driver.find_element_by_xpath(
         '/html/body/div[3]/div[9]/div[9]/div/div/div[1]/div[2]/div/div['
         '1]/div/div/div[2]/div[1]/div[1]/div[1]/h1').text
@@ -145,6 +154,10 @@ def street_origin_destination_address_finder(driver, street_name, lat, lng):
     notFound = True
     while notFound:
         address_to_search = f'{address_number} {back_half_address}'
+
+        if address_number > 1000:
+            raise NoSuchElementException
+
         if address_exists(driver, h1_initial_street_name, address_to_search, searchbar):
             notFound = False
             lower_bound_address = address_to_search
@@ -233,12 +246,13 @@ def get_initial_cords(list_of_street_names):
 
 if __name__ == '__main__':
     start_end_waypoints = read_pickle(start_end_waypoints_file_path)
-
+    temp = []
+    [temp.append(x) for x in start_end_waypoints if x not in temp]
+    start_end_waypoints = temp
     for tup in start_end_waypoints:
         print(tup)
 
-    input()
-
+    print(f'You should start at {len(start_end_waypoints)}')
     data = read_pickle(street_info_pickle_path)
     street_names = data.keys()
 

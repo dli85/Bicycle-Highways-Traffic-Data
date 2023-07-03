@@ -1,4 +1,4 @@
-import pathlib
+# Scrapes the government traffic reports, should not need to be used anymore.
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By

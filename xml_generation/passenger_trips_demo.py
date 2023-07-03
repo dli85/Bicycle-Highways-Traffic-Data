@@ -1,3 +1,5 @@
+# Generates the passenger trips file. This is a demo/proof of concept for controlling vehicle behavior.
+
 import random
 from random import shuffle
 import xml.etree.ElementTree as ET
